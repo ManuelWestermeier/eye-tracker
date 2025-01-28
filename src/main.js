@@ -1,16 +1,19 @@
 import './css/style.css';
 import * as faceapi from 'face-api.js';
 
+const stateElem = document.getElementById("state");
+const errorElem = document.getElementById("error");
+
 async function loadModels() {
   try {
-    console.log("Loading models...");
+    stateElem.innerText = "Loading models...";
     // Ensure correct path to your cloned models directory
     await faceapi.nets.tinyFaceDetector.loadFromUri('https://raw.githubusercontent.com/justadudewhohacks/face-api.js-models/refs/heads/master/tiny_face_detector/');
     await faceapi.nets.faceLandmark68Net.loadFromUri('https://raw.githubusercontent.com/justadudewhohacks/face-api.js-models/refs/heads/master/face_landmark_68/');
 
-    console.log("Models loaded successfully.");
+    stateElem.innerText = "Models loaded successfully.";
   } catch (err) {
-    console.error("Error loading models:", err);
+    errorElem.innerText = ("Error loading models:", err);
   }
 }
 
@@ -40,8 +43,8 @@ async function initFaceDetection() {
 
       // Start detecting on video playback
       video.addEventListener('play', async () => {
-        console.log("Starting detection...");
-        setInterval(async () => {
+        stateElem.innerText = ("Starting detection...");
+        requestAnimationFrame(async function update() {
           const detections = await faceapi
             .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
             .withFaceLandmarks();
@@ -58,15 +61,16 @@ async function initFaceDetection() {
               const leftEye = landmarks.getLeftEye();
               const rightEye = landmarks.getRightEye();
 
-              console.log("Left Eye Coordinates:", leftEye);
-              console.log("Right Eye Coordinates:", rightEye);
+              console.log([leftEye, rightEye]);
             });
           }
-        }, 100);
+
+          requestAnimationFrame(update);
+        });
       });
     });
   } catch (err) {
-    console.error("Error accessing webcam:", err);
+    errorElem.innerText = ("Error accessing webcam:", err);
   }
 }
 
